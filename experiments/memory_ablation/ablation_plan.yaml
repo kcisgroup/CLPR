@@ -1,0 +1,195 @@
+# Global memory ablation plan
+# Paths are relative to the project root (/mnt/data/zsy-data/PerMed)
+datasets:
+  MedCorpus:
+    type: multi_turn
+    description: "Biomedical multi-turn benchmark (3 turns per topic)."
+    cognitive_features: results/MedCorpus/cognitive_features_detailed.jsonl
+    ground_truth: results/MedCorpus/ground_truth.jsonl
+    retrieved: results/MedCorpus/retrieved.jsonl
+    metadata_cache: experiments/memory_ablation/cache/MedCorpus_metadata.jsonl
+    topic_shift_threshold: 0.32
+    default_profile_char_limit: 260
+    variants:
+      - id: full_memory
+        label: Full CLPR
+        description: "Sequential + working + long-term memory."
+        profile_file: results/MedCorpus/personalized_queries_qwen3-32b.jsonl
+        ranked_file: results/MedCorpus/ranked_jina-v3_profile-only_top10.jsonl
+        generation:
+          type: passthrough
+      - id: no_long
+        label: Drop Long-term
+        description: "Removes background/long-term cues."
+        profile_file: experiments/memory_ablation/no_long/MedCorpus/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_long/MedCorpus/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [long]
+          max_chars: 260
+          include_query_fallback: true
+      - id: no_sequential
+        label: Drop Sequential
+        description: "Removes sequential continuity cues."
+        profile_file: experiments/memory_ablation/no_sequential/MedCorpus/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_sequential/MedCorpus/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [sequential]
+          max_chars: 260
+          include_query_fallback: true
+      - id: no_working
+        label: Drop Working
+        description: "Removes short-term/FOC cues."
+        profile_file: experiments/memory_ablation/no_working/MedCorpus/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_working/MedCorpus/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [working]
+          max_chars: 260
+          include_query_fallback: true
+      - id: query_only
+        label: Query-Only Profile Stub
+        description: "Reuses the raw user query as the profile text to isolate query-only behavior inside the profile-only pipeline."
+        profile_file: experiments/memory_ablation/query_only/MedCorpus/personalized_queries.jsonl
+        ranked_file: experiments/memory_ablation/query_only/MedCorpus/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: query_only
+          max_chars: 200
+    subsets:
+      - id: turn_buckets
+        description: "Per-turn evaluation buckets."
+        rules:
+          - label: Turn=1
+            conditions:
+              min_turn: 1
+              max_turn: 1
+          - label: Turn=2
+            conditions:
+              min_turn: 2
+              max_turn: 2
+          - label: Turn≥3
+            conditions:
+              min_turn: 3
+      - id: context_dependency
+        description: "Queries that explicitly reference history vs. self-contained."
+        rules:
+          - label: Self-contained
+            conditions:
+              max_turn: 1
+              flags_false: [has_pronoun_reference, has_connector_reference]
+          - label: Pronoun/Connector
+            conditions:
+              min_turn: 2
+              flags_any: [has_pronoun_reference, has_connector_reference]
+          - label: Topic Shift
+            conditions:
+              min_turn: 2
+              flags_true: [topic_shift]
+      - id: history_depth
+        description: "Effect of how many prior turns exist."
+        rules:
+          - label: ≤1 previous turn
+            conditions:
+              max_history_size: 1
+          - label: 2 previous turns
+            conditions:
+              min_history_size: 2
+              max_history_size: 2
+          - label: ≥3 previous turns
+            conditions:
+              min_history_size: 3
+  LitSearch:
+    type: single_turn
+    description: "Computer-science single-turn benchmark with sparse relevance."
+    cognitive_features: results/LitSearch/cognitive_features_detailed.jsonl
+    ground_truth: data/LitSearch/query_to_texts.jsonl
+    retrieved: results/LitSearch/retrieved.jsonl
+    metadata_cache: experiments/memory_ablation/cache/LitSearch_metadata.jsonl
+    topic_shift_threshold: 0.4
+    default_profile_char_limit: 220
+    variants:
+      - id: full_memory
+        label: Full CLPR
+        description: "All cues enabled."
+        profile_file: results/LitSearch/personalized_queries_qwen3-32b.jsonl
+        ranked_file: results/LitSearch/ranked_jina-v3_profile-only_top10.jsonl
+        generation:
+          type: passthrough
+      - id: no_long
+        label: Drop Long-term
+        description: "Remove background terms even for single-turn queries."
+        profile_file: experiments/memory_ablation/no_long/LitSearch/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_long/LitSearch/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [long]
+          max_chars: 200
+      - id: no_sequential
+        label: Drop Sequential
+        description: "Sequential cues are mostly noise for LitSearch."
+        profile_file: experiments/memory_ablation/no_sequential/LitSearch/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_sequential/LitSearch/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [sequential]
+          max_chars: 200
+      - id: no_working
+        label: Drop Working
+        description: "Remove focus cues, keep only background."
+        profile_file: experiments/memory_ablation/no_working/LitSearch/personalized_queries_qwen3-32b.jsonl
+        ranked_file: experiments/memory_ablation/no_working/LitSearch/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: structured
+          exclude_dimensions: [working]
+          max_chars: 200
+      - id: query_only
+        label: Query-Only Profile Stub
+        description: "Profile text equals the raw query so the profile-only reranker behaves like a query-only system."
+        profile_file: experiments/memory_ablation/query_only/LitSearch/personalized_queries.jsonl
+        ranked_file: experiments/memory_ablation/query_only/LitSearch/ranked_jina_profile-only_qwen3-32b_top10.jsonl
+        generation:
+          type: query_only
+          max_chars: 160
+    subsets:
+      - id: query_length
+        description: "Short vs. long single-turn questions."
+        rules:
+          - label: ≤12 tokens
+            conditions:
+              max_token_count: 12
+          - label: 13-20 tokens
+            conditions:
+              min_token_count: 13
+              max_token_count: 20
+          - label: ≥21 tokens
+            conditions:
+              min_token_count: 21
+      - id: background_density
+        description: "How many long-term cues remain inside the profile."
+        rules:
+          - label: No background
+            conditions:
+              max_long_count: 0
+          - label: Light background (1 cue)
+            conditions:
+              min_long_count: 1
+              max_long_count: 1
+          - label: Heavy background (≥2)
+            conditions:
+              min_long_count: 2
+      - id: cue_mix
+        description: "Working vs. background dominant queries."
+        rules:
+          - label: Working-dominant
+            conditions:
+              min_working_count: 2
+              max_long_count: 0
+          - label: Background-dominant
+            conditions:
+              min_long_count: 2
+              max_working_count: 1
+          - label: Balanced cues
+            conditions:
+              min_working_count: 1
+              min_long_count: 1

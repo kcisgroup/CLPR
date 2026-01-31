@@ -1,0 +1,41 @@
+# Core dependencies
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+tqdm>=4.65.0
+
+# Deep Learning
+torch>=2.0.0
+transformers>=4.35.0
+sentence-transformers>=2.2.0
+
+# Retrieval and Ranking
+faiss-cpu>=1.7.4
+jina-hubble-client>=0.1.0
+
+# LLM APIs
+openai>=1.0.0
+anthropic>=0.8.0
+requests>=2.31.0
+
+# Keyphrase Extraction
+keybert>=0.8.3
+spacy>=3.7.0
+
+# Data Processing
+jsonlines>=4.0.0
+datasets>=2.14.0
+
+# Evaluation
+ir-measures>=0.3.0
+ranx>=0.3.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+tenacity>=8.2.0
+httpx>=0.25.0
+
+# Plotting (for experiments)
+matplotlib>=3.7.0
+seaborn>=0.12.0

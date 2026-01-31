@@ -1,0 +1,206 @@
+# MedCorpus_MultiTurn_Qwen3_Silver Dataset
+
+Multi-turn conversational retrieval dataset with silver-standard labels for evaluating conversational search systems.
+
+## Dataset Information
+
+- **Name**: MedCorpus_MultiTurn_Qwen3_Silver
+- **Domain**: Medical/Scientific Literature
+- **Task**: Multi-turn Conversational Document Retrieval
+- **Retrieval Model**: Qwen3-Embedding-0.6B (1024-dim)
+- **Annotation Model**: DeepSeek-V3.2-Exp (SiliconFlow API)
+- **Label Type**: Silver-standard (LLM-generated)
+
+## Files
+
+| File | Size | Description |
+|------|------|-------------|
+| `corpus.jsonl` | 132.1 MB | Document corpus (92,703 medical documents) |
+| `queries.jsonl` | 1.1 MB | Multi-turn conversational queries (800 conversations) |
+| `query_to_texts.jsonl` | 2.7 MB | Relevance labels for query-document pairs (34,387 labels) |
+| `metadata.json` | 1.3 KB | Dataset metadata and statistics |
+
+## Dataset Statistics
+
+### Scale
+- **Conversations**: 800
+- **Turns**: 3,440 (avg 4.3 turns/conversation)
+- **Labels**: 34,387 (avg 43.0 labels/conversation)
+- **Corpus Size**: 92,703 documents
+
+### Conversation Length Distribution
+- 3 turns: 200 conversations (25.0%)
+- 4 turns: 240 conversations (30.0%)
+- 5 turns: 280 conversations (35.0%)
+- 6 turns: 80 conversations (10.0%)
+
+### Relevance Label Distribution (Global)
+- **0 (Not Relevant)**: 10,443 labels (30.4%)
+- **1 (Partially Relevant)**: 18,689 labels (54.3%)
+- **2 (Highly Relevant)**: 5,237 labels (15.2%)
+- **-1 (Annotation Failed)**: 18 labels (0.05%)
+
+### Relevance Distribution by Turn
+
+| Turn | Not Relevant | Partially Relevant | Highly Relevant |
+|------|--------------|-------------------|-----------------|
+| 1 | 1,530 (19.1%) | 4,212 (52.7%) | 2,241 (28.0%) |
+| 2 | 2,910 (36.4%) | 3,892 (48.7%) | 1,192 (14.9%) |
+| 3 | 2,217 (27.7%) | 4,610 (57.7%) | 1,165 (14.6%) |
+| 4 | 1,934 (32.2%) | 3,636 (60.6%) | 430 (7.2%) |
+| 5 | 1,511 (42.0%) | 1,937 (53.8%) | 152 (4.2%) |
+| 6 | 341 (42.6%) | 402 (50.2%) | 57 (7.1%) |
+
+## Data Format
+
+### corpus.jsonl
+Each line is a JSON object representing a document:
+```json
+{
+  "text_id": "permed-0001",
+  "title": "Document title",
+  "text": "Document full text..."
+}
+```
+
+### queries.jsonl
+Each line is a JSON object representing a multi-turn conversation:
+```json
+{
+  "conversation_id": "topic_001",
+  "target_turns": 3,
+  "turns": [
+    {"turn_id": 1, "text": "First question"},
+    {"turn_id": 2, "text": "Follow-up question"},
+    {"turn_id": 3, "text": "Final question"}
+  ]
+}
+```
+
+### query_to_texts.jsonl
+Each line is a JSON object representing a relevance label:
+```json
+{
+  "conversation_id": "topic_001",
+  "turn_id": 1,
+  "doc_id": "permed-12345",
+  "rel": 2
+}
+```
+
+**Relevance Scale**:
+- `0`: Not Relevant - Completely different research topic or field
+- `1`: Partially Relevant - Discusses related concepts, methods, materials, or belongs to the same research area
+- `2`: Highly Relevant - Directly addresses the specific question being asked
+
+## Usage Example
+
+### Loading the Dataset
+
+```python
+import json
+
+# Load corpus
+corpus = {}
+with open('corpus.jsonl', 'r', encoding='utf-8') as f:
+    for line in f:
+        doc = json.loads(line)
+        corpus[doc['text_id']] = doc
+
+# Load queries
+queries = []
+with open('queries.jsonl', 'r', encoding='utf-8') as f:
+    for line in f:
+        queries.append(json.loads(line))
+
+# Load labels
+labels = []
+with open('query_to_texts.jsonl', 'r', encoding='utf-8') as f:
+    for line in f:
+        labels.append(json.loads(line))
+
+print(f"Loaded {len(corpus)} documents")
+print(f"Loaded {len(queries)} conversations")
+print(f"Loaded {len(labels)} labels")
+```
+
+### Computing Evaluation Metrics
+
+```python
+from collections import defaultdict
+
+# Organize labels by conversation and turn
+qrels = defaultdict(lambda: defaultdict(dict))
+for label in labels:
+    conv_id = label['conversation_id']
+    turn_id = label['turn_id']
+    doc_id = label['doc_id']
+    rel = label['rel']
+    qrels[conv_id][turn_id][doc_id] = rel
+
+# Example: Compute Precision@5 for a retrieval system
+def compute_precision_at_k(retrieved_docs, qrels, k=5):
+    """
+    retrieved_docs: dict {(conv_id, turn_id): [(doc_id, score), ...]}
+    qrels: dict {conv_id: {turn_id: {doc_id: rel}}}
+    """
+    precisions = []
+    for (conv_id, turn_id), docs in retrieved_docs.items():
+        top_k = docs[:k]
+        relevant = sum(1 for doc_id, _ in top_k
+                      if qrels[conv_id][turn_id].get(doc_id, 0) >= 1)
+        precisions.append(relevant / k)
+    return sum(precisions) / len(precisions)
+```
+
+## Citation
+
+If you use this dataset, please cite:
+
+```bibtex
+@dataset{medcorpus_multiturn_qwen3_silver,
+  title={MedCorpus MultiTurn Conversational Retrieval Dataset with Silver Labels},
+  author={Your Name},
+  year={2025},
+  note={Retrieved using Qwen3-Embedding-0.6B, annotated with DeepSeek-V3.2-Exp}
+}
+```
+
+## Quality Notes
+
+- **Label Quality**: Silver-standard labels generated by DeepSeek-V3.2-Exp with detailed prompts
+- **Annotation Success Rate**: 99.95% (18 failed out of 34,387)
+- **Turn 1 Performance**: Highest relevance scores (28.0% highly relevant), indicating good retrieval quality for initial queries
+- **Label Distribution**: Balanced across relevance levels, with no obvious bias
+
+## Recommended Experiments
+
+1. **Baseline Comparisons**:
+   - BM25 (traditional lexical retrieval)
+   - Single-turn retrieval (ignoring conversation history)
+   - Naive concatenation (simple history + current query)
+
+2. **Evaluation Metrics**:
+   - Precision@K (K=1,3,5,10)
+   - Recall@K
+   - NDCG@K (using graded relevance 0/1/2)
+   - MRR (Mean Reciprocal Rank)
+   - MAP (Mean Average Precision)
+
+3. **Ablation Studies**:
+   - Effect of conversation history
+   - Effect of coreference resolution
+   - Effect of query reformulation
+
+4. **Analysis**:
+   - Performance by turn number
+   - Performance by conversation length
+   - Error analysis on failure cases
+
+## License
+
+This dataset is for research purposes only.
+
+## Contact
+
+For questions or issues, please contact [your email].

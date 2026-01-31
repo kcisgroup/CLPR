@@ -1,0 +1,123 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Logs
+logs/
+*.log
+
+# Results and outputs
+results/
+output/
+outputs/
+*.out
+
+# Model weights and large files
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+model/*/pytorch_model.bin
+model/*/model.safetensors
+
+# Data files (large embeddings and corpora)
+data/*/corpus_embeddings*.npy
+data/*/embeddings/
+data/*/*.npy
+data/*/*.pkl
+data/*/*.h5
+data/*/*.hdf5
+baselines/data/*/corpus_embeddings*.npy
+
+# Large JSON/JSONL files (corpus files)
+data/*/corpus.jsonl
+data/*/papers.jsonl
+baselines/data/*/corpus.jsonl
+
+# Keep dataset metadata and queries
+data/*/queries.jsonl
+!data/*/queries.jsonl
+data/*/*.json
+!data/*/*.json
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+
+# Cache
+.cache/
+.llm_cache*/
+*.cache
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Config with secrets
+config/local_config.yaml
+config/secrets.yaml
+
+# Experiment artifacts
+experiments/*/outputs/
+experiments/*/results/
+experiments/*/plots/
+*.png
+*.jpg
+*.jpeg
+*.svg
+!docs/*.svg
+!assets/figures/*.svg
+!assets/figures/*.png
+
+# Overleaf/paper files
+论文文件/
+*.pdf
+*.tex
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+
+# Specific large directories
+baselines/results/

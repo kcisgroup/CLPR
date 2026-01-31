@@ -1,0 +1,67 @@
+{
+  "dataset_name": "MedCorpus_MultiTurn_Qwen3_Silver",
+  "description": "Multi-turn conversational retrieval dataset with silver-standard labels",
+  "retrieval_model": "Qwen3-Embedding-0.6B",
+  "annotation_model": "DeepSeek-V3.2-Exp",
+  "annotation_type": "silver-standard (LLM-generated)",
+  "relevance_scale": "0 (Not Relevant), 1 (Partially Relevant), 2 (Highly Relevant)",
+  "files": {
+    "corpus.jsonl": "Document corpus (92,703 medical documents)",
+    "queries.jsonl": "Multi-turn conversational queries (800 conversations)",
+    "query_to_texts.jsonl": "Relevance labels for query-document pairs (34,387 labels)"
+  },
+  "statistics": {
+    "conversations": 800,
+    "turns": 3440,
+    "labels": 34387,
+    "corpus_size": 92703,
+    "avg_turns_per_conversation": 4.3,
+    "turns_distribution": {
+      "3": 200,
+      "4": 240,
+      "5": 280,
+      "6": 80
+    },
+    "relevance_distribution": {
+      "2": 5237,
+      "1": 18689,
+      "0": 10443,
+      "-1": 18
+    },
+    "relevance_by_turn": {
+      "1": {
+        "2": 2241,
+        "1": 4212,
+        "0": 1530,
+        "-1": 16
+      },
+      "2": {
+        "2": 1192,
+        "1": 3892,
+        "0": 2910,
+        "-1": 1
+      },
+      "3": {
+        "2": 1165,
+        "0": 2217,
+        "1": 4610,
+        "-1": 1
+      },
+      "4": {
+        "2": 430,
+        "1": 3636,
+        "0": 1934
+      },
+      "5": {
+        "1": 1937,
+        "0": 1511,
+        "2": 152
+      },
+      "6": {
+        "0": 341,
+        "1": 402,
+        "2": 57
+      }
+    }
+  }
+}
